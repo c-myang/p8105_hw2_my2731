@@ -10,6 +10,8 @@ library(tidyverse)
 
 ## Problem 1: NYC Transit Data
 
+### Cleaning the data
+
 We will work with NYC Transit data; which contains information related to each entrance and exit for each subway station in NYC. 
 
 We will read in and clean the data by retaining line, station name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance. We also want to convert the entry variable from character (YES vs NO) to a logical variable. 
@@ -29,6 +31,41 @@ head(transit_data)
 Using `head(transit_data)`, we can see our cleaned data includes 19 observations and 1868 observations. For each station entrance/exit, we have information about the station name, line, the station latitude and longitude, the routes it serves, entrance type, whether it has an entry, has a ticket vendor, and whether it is ADA compliant.
 
 After these steps, these data are not fully tidy. We can see there are several `route#` columns to indicate each individual subway route a station serves, making our dataset very wide. Moreover, the `vending` variable could also be converted to a logical variable, since it is a binary variable (like `entry` and `ada`).
+
+### Data Exploration
+Next, we will explore a few aspects of our data.
+Using `distinct()`, we can get the number of unique stations, accounting for stations with the same name along different lines . 
+
+```{r}
+distinct(transit_data, line, station_name) %>% 
+  arrange(station_name)
+```
+Arranging the data by station name, we can see the output gave us entries for each unique combination of station name and line.
+
+In total, there are **`r nrow(distinct(transit_data, line, station_name))` unique stations**.
+
+Next, we want to know how many stations are ADA compliant. For this, we can use `group_by` and `summarise` to get the frequency of `TRUE`'s under the `ada` variable.
+
+```{r}
+transit_data %>%
+  distinct(line, station_name, ada) %>% 
+  group_by(ada) %>%
+  summarise(n = n())
+```
+
+From our results, we can see that **84 stations are ADA-compliant.**
+
+Finally, we want to know what proportion of entrances/exits without vending allow entrance. For this, we will `filter` observations to those with `vending == "NO"`, then use `group_by`, `summarise`, and `mutate` to compute the proportion of entrances/exits with `entry == "YES"`.
+
+```{r}
+transit_data %>%
+  filter(vending == "NO") %>% 
+  group_by(entry) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n))
+```
+From our results, **37.71% of station entrances / exits without vending allow entrance.**
+
 
 ## Problem 2: Mr. Trash Wheel Data
 
