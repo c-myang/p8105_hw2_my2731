@@ -8,15 +8,33 @@ date: "October 5th, 2022"
 library(tidyverse)
 ```
 
-## Problem 1: 
+## Problem 1: NYC Transit Data
+
+We will work with NYC Transit data; which contains information related to each entrance and exit for each subway station in NYC. 
+
+We will read in and clean the data by retaining line, station name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance. We also want to convert the entry variable from character (YES vs NO) to a logical variable. 
+
+To achieve this, we will read in the dataset using `read_csv()`, convert the variable names to snake case using `janitor::clean_names()`, use `select()` to keep the variables of interest in our data, then use `mutate() and recode()` to convert the `entry` from a character to a logical variable.
+
+```{r clean_data, warning = FALSE, message = FALSE}
+transit_data = 
+  read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>% 
+  janitor::clean_names() %>% 
+  select(line:entry, vending, ada) %>% 
+  mutate(entry = recode(entry, YES = TRUE, NO = FALSE)) 
+
+head(transit_data)
+```
+
+Using `head(transit_data)`, we can see our cleaned data includes 19 observations and 1868 observations. For each station entrance/exit, we have information about the station name, line, the station latitude and longitude, the routes it serves, entrance type, whether it has an entry, has a ticket vendor, and whether it is ADA compliant.
+
+After these steps, these data are not fully tidy. We can see there are several `route#` columns to indicate each individual subway route a station serves, making our dataset very wide. Moreover, the `vending` variable could also be converted to a logical variable, since it is a binary variable (like `entry` and `ada`).
+
+## Problem 2: Mr. Trash Wheel Data
 
 
 
-## Problem 2:
-
-
-
-## Problem 3:
+## Problem 3: FiveThirtyEight Data
 
 
 
