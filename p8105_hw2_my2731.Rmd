@@ -1,0 +1,22 @@
+---
+title: "P8105 Homework 2"
+output: github_document
+date: "October 5th, 2022"
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+```
+
+## Problem 1: 
+
+
+
+## Problem 2:
+
+
+
+## Problem 3:
+
+
+
