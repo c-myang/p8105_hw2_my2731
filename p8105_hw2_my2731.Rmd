@@ -69,19 +69,62 @@ From our results, **37.71% of station entrances / exits without vending allow en
 
 ## Problem 2: Mr. Trash Wheel Data
 ### Reading and cleaning data
-First, we will read and clean the Mr. Trash Wheel sheet from the Trash Wheel Collection Totals Excel file in `./data`:
+First, we will read and clean the Mr. Trash Wheel sheet from the Trash Wheel Collection Totals Excel file in `./data` folder. We will convert variable names to snake case, filter out observations without a dumpster number (to remove rows without dumpster-specific data), round the `sports_balls` variable to an integer, and add a `vessel` variable to label all observations in the data as coming from Mr. Trash Wheel sheet.
 
 ```{r}
-trash_wheel = 
+mrtrash_wheel = 
   readxl::read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx",
                      sheet = "Mr. Trash Wheel",
                      range = "A2:N534") %>% 
   janitor::clean_names() %>% 
   filter(!is.na(dumpster)) %>% 
-  mutate(sports_balls = as.integer(sports_balls))
+  mutate(sports_balls = as.integer(sports_balls)) %>% 
+  mutate(vessel = "Mr. Trash Wheel")
 ```
 
+Next, we will repeat the same reading and cleaning processes in the Professor Trash Wheel sheet, in the same Excel file. Similarly, we will add a `vessel` variable to label all observations in the data as coming from Professor Trash Wheel sheet.
 
+```{r}
+proftrash_wheel = 
+  readxl::read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx",
+                     sheet = "Professor Trash Wheel",
+                     range = "A2:N116") %>% 
+  janitor::clean_names() %>% 
+  filter(!is.na(dumpster)) %>% 
+  mutate(sports_balls = as.integer(sports_balls)) %>% 
+  mutate(vessel = "Professor Trash Wheel")
+```
+
+Finally, we can bind the Mr. Trash Wheel and Professor Trash Wheel data into a single tidy dataset. We can distinguish which observation comes from which sheet using the `vessel` variable in column 1.
+
+```{r}
+trash_wheel = 
+  bind_rows(mrtrash_wheel, proftrash_wheel) %>% 
+  relocate(vessel)
+```
+### Describing the  `trash_wheel` dataset
+
+```{r}
+skimr::skim(trash_wheel)
+```
+
+In our tidied dataset, we have a tibble containing 15 variables and 524 observations. The variables in the dataset describe several characteristics of each dumpster collected from either the Mr. Trash or Professor Trash Wheel. It includes identifiers like the dumpster number and date, and vessel it originates from. It also describes the weight (in tons) and volume (in cubic yards) of trash collected, as well as counts of common types of trash found in the dumpster, such as plastic bottles, polystyrene, cigarette butts, and sports balls.
+
+Using `summarise`, we can answer some questions about our data. 
+
+```{r}
+total_weight = trash_wheel %>% 
+  filter(vessel == "Professor Trash Wheel") %>% 
+  summarise(n = sum(weight_tons))
+
+total_sports_balls = trash_wheel %>% 
+  filter(vessel == "Mr. Trash Wheel", year == 2020) %>% 
+  summarise(n = sum(sports_balls))
+```
+
+The total weight of trash collected by Professor Trash Wheel is **`r total_weight` tons.**
+
+The total number of sports balls collected by Mr. Trash Wheel in 2020 was **`r total_sports_balls`.**
 
 ## Problem 3: FiveThirtyEight Data
 
