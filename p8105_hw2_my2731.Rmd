@@ -16,7 +16,7 @@ We will work with NYC Transit data; which contains information related to each e
 
 We will read in and clean the data by retaining line, station name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance. We also want to convert the entry variable from character (YES vs NO) to a logical variable. 
 
-To achieve this, we will read in the dataset using `read_csv()`, convert the variable names to snake case using `janitor::clean_names()`, use `select()` to keep the variables of interest in our data, then use `mutate() and recode()` to convert the `entry` from a character to a logical variable.
+To achieve this, we will read in the dataset using `read_csv()`, convert the variable names to snake case using `janitor::clean_names()`, use `select()` to keep the variables of interest in our data, then use `mutate()` and `recode()` to convert the `entry` from a character to a logical variable.
 
 ```{r clean_data, warning = FALSE, message = FALSE}
 transit_data = 
@@ -28,7 +28,7 @@ transit_data =
 head(transit_data)
 ```
 
-Using `head(transit_data)`, we can see our cleaned data includes 19 observations and 1868 observations. For each station entrance/exit, we have information about the station name, line, the station latitude and longitude, the routes it serves, entrance type, whether it has an entry, has a ticket vendor, and whether it is ADA compliant.
+Using `head(transit_data)`, we can see our cleaned data includes 19 variables and 1868 observations. For each station entrance/exit, we have information about the station name, line, the station latitude and longitude, the routes it serves, entrance type, whether it has an entry, has a ticket vendor, and whether it is ADA compliant.
 
 After these steps, these data are not fully tidy. We can see there are several `route#` columns to indicate each individual subway route a station serves, making our dataset very wide. Moreover, the `vending` variable could also be converted to a logical variable, since it is a binary variable (like `entry` and `ada`).
 
@@ -68,6 +68,18 @@ From our results, **37.71% of station entrances / exits without vending allow en
 
 
 ## Problem 2: Mr. Trash Wheel Data
+### Reading and cleaning data
+First, we will read and clean the Mr. Trash Wheel sheet from the Trash Wheel Collection Totals Excel file in `./data`:
+
+```{r}
+trash_wheel = 
+  readxl::read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx",
+                     sheet = "Mr. Trash Wheel",
+                     range = "A2:N534") %>% 
+  janitor::clean_names() %>% 
+  filter(!is.na(dumpster)) %>% 
+  mutate(sports_balls = as.integer(sports_balls))
+```
 
 
 
