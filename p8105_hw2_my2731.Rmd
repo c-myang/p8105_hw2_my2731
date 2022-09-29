@@ -64,7 +64,7 @@ transit_data %>%
   summarise(n = n()) %>%
   mutate(freq = n / sum(n))
 ```
-From our results, **37.71% of station entrances / exits without vending allow entrance.**
+From our results, **37.71% of station entrances / exits without vending allow entry.**
 
 
 ## Problem 2: Mr. Trash Wheel Data
@@ -127,6 +127,57 @@ The total weight of trash collected by Professor Trash Wheel is **`r total_weigh
 The total number of sports balls collected by Mr. Trash Wheel in 2020 was **`r total_sports_balls`.**
 
 ## Problem 3: FiveThirtyEight Data
+### Reading and cleaning data
 
+First, we will clean the `pols-month.csv` data. 
 
+We'll use `separate()` to break up the variable `mon` into integer variables year, month, and day. Then, we use `month.name` within the `mutate` function to replace month number with month name. Then, we'll use `ifelse` to create a president variable taking values `gop` and `dem`, and use `select` to remove `prez_dem`, `prez_gop`, and the `day` variable.
+
+```{r pols, message = FALSE}
+pols_month = read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(mon, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(month = month.name[as.numeric(month)]) %>%
+  mutate(year = as.numeric(year)) %>% 
+  mutate(president = ifelse(prez_dem == 1, "dem", "rep")) %>% 
+  select(-prez_dem, -prez_gop, -day)
+```
+
+Second, we will clean the data in `snp.csv` using a similar process as above. 
+
+```{r snp, message = FALSE}
+snp = read_csv("./data/fivethirtyeight_datasets/snp.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(date, into = c("month", "day", "year"), sep = "/") %>% 
+  mutate(month = month.name[as.numeric(month)]) %>% 
+  mutate(year = as.numeric(ifelse(year > 15, paste0("19", year), paste0("20", year)))) %>% 
+  select(-day) %>% 
+  relocate(year)
+```
+
+Third, tidy the unemployment data so that it can be merged with the previous datasets. This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values.
+
+```{r unemployment, message = FALSE}
+unemployment = read_csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    jan:dec,
+    names_to = "month",
+    values_to = "pct_unemployed") %>% 
+  mutate(month = month.name[match(str_to_title(month), month.abb)])
+```
+
+Finally, we will join the datasets by merging snp into pols, and merging unemployment into the result.
+
+```{r join, message = FALSE}
+five_thirty_eight = 
+  left_join(pols_month, snp, by = c("month", "year")) %>% 
+  left_join(unemployment, by = c("month", "year"))
+```
+
+The file “pols-month” contains 822 observations of 9 variables related to the number of national politicians who are democratic or republican at any given time:
+
+The file “snp” contains 787 observations of 2 variables related to Standard & Poor’s stock market index (S&P), often used as a representative measure of stock market as a whole:
+
+The file “unemployment” contains 68 observations of 13 variables:
 
