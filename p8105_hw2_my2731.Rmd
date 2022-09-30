@@ -88,7 +88,7 @@ A_stations = transit_data %>%
 A_stations
 ```
 
-We can see that there are 10 variables and 60 observations in our A_stations dataset, indicating **60** unique stations that serve the A line.
+Our results returned a subset of the `transit_data` with a unique combination of line and station name, filtered to the A line. There are 10 variables and 60 observations in our A_stations dataset, indicating **60** unique stations that serve the A line.
 
 ```{r a_ada}
 A_stations %>% 
@@ -206,11 +206,17 @@ five_thirty_eight =
   left_join(unemployment, by = c("month", "year"))
 ```
 
+### Describing the data
+
 The dataset `pols-month` contains 822 observations of 9 variables related to the number of national politicians who are democratic or republican for each month between January 1947 and June 2015. It includes counts of Democratic or Republican governors, Senators, and Congressional representatives, as well as `president`, which indicates whether the President at the time was Democratic or Republican.
 
 The dataset `snp` contains 787 observations of 3 variables. Its main variable is `closing`, which is the closing price of Standard & Poor’s stock market index (S&P), often used as a representative measure of stock market as a whole, for each month between January 1950 and July 2015. 
 
 The dataset `unemployment` contains 816 observations of 3 variables. Its main variable is `pct_unemployed`, which is the unemployment rate for each month between January 1948 and December 2015.
+
+```{r}
+five_thirty_eight
+```
 
 Joined together, the final `five_thirty_eight` dataset merges information from the 3 prior datasets in a table of 11 variables and 822 observations. It contains information about the counts of national politicians along party lines, closing prices of the S&P index, and unemployment rate for each month between 1947 and 2015.
 
