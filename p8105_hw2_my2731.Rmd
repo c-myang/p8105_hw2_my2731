@@ -25,18 +25,18 @@ transit_data =
   select(line:entry, vending, ada) %>% 
   mutate(entry = recode(entry, YES = TRUE, NO = FALSE)) 
 
-head(transit_data)
+transit_data
 ```
 
-We can see our cleaned data includes `r ncol(transit_data)` variables and `r nrow(transit_data)` observations. For each station entrance/exit, we have information about the station name, line, the station latitude and longitude, the routes it serves, entrance type, whether it has an entry, has a ticket vendor, and whether it is ADA compliant.
+We can see our cleaned data includes `r ncol(transit_data)` variables and `r nrow(transit_data)` observations. For each station entrance/exit, we have information about the station name, line, the station latitude and longitude, the routes it serves, entrance type, whether it has an entry, has a ticket vendor, and whether it is ADA-compliant.
 
-After these steps, these data are not fully tidy. We can see there are several `route#` columns to indicate each individual subway route a station serves, making our dataset very wide. Moreover, the `vending` variable could also be converted to a logical variable, since it is a binary variable (like `entry` and `ada`).
+After these steps, these data are not fully tidy. We can see there are several `route#` columns to indicate each individual subway route a station serves, making our dataset very wide. Moreover, the `vending` variable is in a character format, and could be converted to a logical variable, since it is a binary variable (like `entry` and `ada`).
 
 ### Data Exploration
 Next, we will explore a few aspects of our data.
 Using `distinct()`, we can get the number of unique stations, accounting for stations with the same name along different lines . 
 
-```{r}
+```{r distinct}
 distinct(transit_data, line, station_name) %>% 
   arrange(station_name)
 ```
@@ -46,26 +46,57 @@ In total, there are **`r nrow(distinct(transit_data, line, station_name))` uniqu
 
 Next, we want to know how many stations are ADA-compliant. For this, we can use `group_by` and `summarise` to get the frequency of `TRUE`'s under the `ada` variable.
 
-```{r}
+```{r adacomp}
 transit_data %>%
-  distinct(line, station_name, ada) %>% 
+  distinct(line, station_name, .keep_all = TRUE) %>% 
   group_by(ada) %>%
   summarise(n = n())
 ```
 
 From our results, we can see that **84 stations are ADA-compliant.**
 
-Finally, we want to know what proportion of entrances/exits without vending allow entrance. For this, we will `filter` observations to those with `vending == "NO"`, then use `group_by`, `summarise`, and `mutate` to compute the proportion of entrances/exits with `entry == "YES"`.
+Next, we want to know what proportion of entrances/exits without vending allow entrance. For this, we will `filter` observations to those with `vending == "NO"`, then use `group_by`, `summarise`, and `mutate` to compute the proportion of entrances/exits with `entry == "YES"`.
 
-```{r}
+```{r prop_entry}
 transit_data %>%
   filter(vending == "NO") %>% 
   group_by(entry) %>%
   summarise(n = n()) %>%
-  mutate(freq = n / sum(n))
+  mutate(prop = n / sum(n))
 ```
 From our results, **37.71% of station entrances / exits without vending allow entry.**
 
+Finally, we want to know how many stations serve the A and are ADA-compliant. We will use `pivot_longer` to reformat data so that route number and route name are distinct variables. To do this, we must first mutate all `route#` variables into a character format so `pivot_longer` can be used. 
+
+Then, we will filter the dataset to only stations that serve `route_name == "A"`, and use `distinct` to get a list of unique stations.
+
+```{r reformat}
+A_stations = transit_data %>% 
+  mutate(route8 = as.character(route8), 
+         route9 = as.character(route9),
+         route10 = as.character(route10),
+         route11 = as.character(route11)) %>% 
+  pivot_longer(
+    route1:route11, 
+    names_to = "route_number", 
+    values_to = "route_name", 
+    names_prefix = "route"
+  ) %>% 
+  filter(route_name == "A") %>% 
+  distinct(line, station_name, .keep_all = TRUE)
+
+A_stations
+```
+
+We can see that there are 10 variables and 60 observations in our A_stations dataset, indicating **60** unique stations that serve the A line.
+
+```{r a_ada}
+A_stations %>% 
+  group_by(ada) %>% 
+  summarise(n = n()) %>%
+  mutate(prop = n / sum(n))
+```
+Finally, grouping the `A_stations` dataset by `ada` status, and summarizing the results, we can see that **17 of the 60 (28.3%) stations that serve the A are ADA-compliant.**
 
 ## Problem 2: Mr. Trash Wheel Data
 ### Reading and cleaning data
@@ -101,13 +132,11 @@ Finally, we can bind the Mr. Trash Wheel and Professor Trash Wheel data into a s
 trash_wheel = 
   bind_rows(mrtrash_wheel, proftrash_wheel) %>% 
   relocate(vessel)
-
-head(trash_wheel)
 ```
 ### Describing the  `trash_wheel` dataset
 
 ```{r}
-skimr::skim(trash_wheel)
+trash_wheel
 ```
 
 In our tidied dataset, we have a tibble containing 15 variables and 524 observations. The variables in the dataset describe several characteristics of each dumpster collected from either the Mr. Trash or Professor Trash Wheel. It includes identifiers like the dumpster number and date, and vessel it originates from. It also describes the weight (in tons) and volume (in cubic yards) of trash collected, as well as counts of common types of trash found in the dumpster, such as plastic bottles, polystyrene, cigarette butts, and sports balls.
